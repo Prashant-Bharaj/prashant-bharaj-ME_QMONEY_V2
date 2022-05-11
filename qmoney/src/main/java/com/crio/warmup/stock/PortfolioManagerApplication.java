@@ -67,24 +67,23 @@ public class PortfolioManagerApplication {
     RestTemplate restTemplate = new RestTemplate();
     List<PortfolioTrade> portfolioTrades = readTradesFromJson(args[0]);
     // for each portfolio trade get the closing price and sort according to that
-    List<GetClosePriceAndSymbol> sortedClose = new ArrayList<>();
+    List<TotalReturnsDto> totalReturnsDtos = new ArrayList<>();
     for (PortfolioTrade portfolioTrade : portfolioTrades) {
       String url = prepareUrl(portfolioTrade, ld, "7375d6e3553d0817d4ea50ee14460e4161354332");
       url += "&sort=-date";
-      GetClosePriceAndSymbol[] getClosePriceAndSymbols = restTemplate.getForObject(url, GetClosePriceAndSymbol[].class);
-      if(getClosePriceAndSymbols.length == 0) throw new RuntimeException();
-      for(GetClosePriceAndSymbol getClosePriceAndSymbol : getClosePriceAndSymbols){
-        if(getClosePriceAndSymbol.getClose() != null){
-          getClosePriceAndSymbol.setSymbol(portfolioTrade.getSymbol());
-          sortedClose.add(getClosePriceAndSymbol);
+      TiingoCandle[] tiingoCandles = restTemplate.getForObject(url, TiingoCandle[].class);
+      if(tiingoCandles.length == 0) throw new RuntimeException();
+      for(TiingoCandle tiingoCandle : tiingoCandles){
+        if(tiingoCandle.getClose() != null){
+          totalReturnsDtos.add(new TotalReturnsDto(portfolioTrade.getSymbol(), tiingoCandle.getClose()));
           break;
         }
       }
     }
     // now sort the Trades according to trade close
-    Collections.sort(sortedClose, new Comparator<GetClosePriceAndSymbol>(){
+    Collections.sort(totalReturnsDtos, new Comparator<TotalReturnsDto>(){
       @Override
-      public int compare(GetClosePriceAndSymbol t1, GetClosePriceAndSymbol t2){
+      public int compare(TotalReturnsDto t1, TotalReturnsDto t2){
         if(t1.getClose() > t2.getClose()){
           return 1;
         } else if(t1.getClose() < t2. getClose()){
@@ -95,8 +94,8 @@ public class PortfolioManagerApplication {
       }
     });
     List<String> symbols = new ArrayList<>();
-    for(GetClosePriceAndSymbol GetClosePriceAndSymbol : sortedClose){
-      symbols.add(GetClosePriceAndSymbol.getSymbol());
+    for(TotalReturnsDto totalReturnsDto : totalReturnsDtos){
+      symbols.add(totalReturnsDto.getSymbol());
     }
     return symbols;
   }
