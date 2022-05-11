@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.border.EtchedBorder;
+
+import com.crio.warmup.stock.dto.Candle;
 import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.TiingoCandle;
 import com.crio.warmup.stock.dto.TotalReturnsDto;
@@ -49,35 +51,18 @@ public class PortfolioManagerApplication {
     return listOfSymbols;
   }
 
-  // TODO: CRIO_TASK_MODULE_REST_API
-  // Find out the closing price of each stock on the end_date and return the list
-  // of all symbols in ascending order by its close value on end date.
-
-  // Note:
-  // 1. You may have to register on Tiingo to get the api_token.
-  // 2. Look at args parameter and the module instructions carefully.
-  // 2. You can copy relevant code from #mainReadFile to parse the Json.
-  // 3. Use RestTemplate#getForObject in order to call the API,
-  // and deserialize the results in List<Candle>
-
-  public static List<String> mainReadQuotes(String[] args) throws IOException, URISyntaxException {
-    // Parse the string to LocalDate
-    LocalDate ld = LocalDate.parse(args[1]);
+  public static List<TotalReturnsDto> totalReturns(List<PortfolioTrade> portfolioTrades, LocalDate endDate){
     RestTemplate restTemplate = new RestTemplate();
-    List<PortfolioTrade> portfolioTrades = readTradesFromJson(args[0]);
-
-    
-
-    // for each portfolio trade get the closing price and sort according to that
     List<TotalReturnsDto> totalReturnsDtos = new ArrayList<>();
+    
     for (PortfolioTrade portfolioTrade : portfolioTrades) {
-      String url = prepareUrl(portfolioTrade, ld, "7375d6e3553d0817d4ea50ee14460e4161354332");
+      String url = prepareUrl(portfolioTrade, endDate, "7375d6e3553d0817d4ea50ee14460e4161354332");
       url += "&sort=-date";
-      TiingoCandle[] tiingoCandles = restTemplate.getForObject(url, TiingoCandle[].class);
-      if(tiingoCandles.length == 0) throw new RuntimeException();
-      for(TiingoCandle tiingoCandle : tiingoCandles){
-        if(tiingoCandle.getClose() != null){
-          totalReturnsDtos.add(new TotalReturnsDto(portfolioTrade.getSymbol(), tiingoCandle.getClose()));
+      Candle[] candles = restTemplate.getForObject(url, TiingoCandle[].class);
+      if(candles.length == 0) throw new RuntimeException();
+      for(Candle candle : candles){
+        if(candle.getClose() != null){
+          totalReturnsDtos.add(new TotalReturnsDto(portfolioTrade.getSymbol(), candle.getClose()));
           break;
         }
       }
@@ -96,6 +81,17 @@ public class PortfolioManagerApplication {
       }
     });
 
+    return totalReturnsDtos;
+  }
+
+  public static List<String> mainReadQuotes(String[] args) throws IOException, URISyntaxException {
+    // Parse the string to LocalDate
+    LocalDate endDate = LocalDate.parse(args[1]);
+    List<PortfolioTrade> portfolioTrades = readTradesFromJson(args[0]);
+
+    // get returns for the specified closing date.
+    // for each portfolio trade get the closing price and sort according to that
+    List<TotalReturnsDto> totalReturnsDtos = totalReturns(portfolioTrades, endDate);
     
     List<String> symbols = new ArrayList<>();
     for(TotalReturnsDto totalReturnsDto : totalReturnsDtos){
@@ -103,7 +99,6 @@ public class PortfolioManagerApplication {
     }
     return symbols;
   }
-
 
   public static List<PortfolioTrade> readTradesFromJson(String filename) throws IOException, URISyntaxException {
     File file = resolveFileFromResources(filename);
