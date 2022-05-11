@@ -17,10 +17,9 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.border.EtchedBorder;
-
-import com.crio.warmup.stock.dto.GetClosePriceAndSymbol;
 import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.TiingoCandle;
+import com.crio.warmup.stock.dto.TotalReturnsDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -66,6 +65,9 @@ public class PortfolioManagerApplication {
     LocalDate ld = LocalDate.parse(args[1]);
     RestTemplate restTemplate = new RestTemplate();
     List<PortfolioTrade> portfolioTrades = readTradesFromJson(args[0]);
+
+    
+
     // for each portfolio trade get the closing price and sort according to that
     List<TotalReturnsDto> totalReturnsDtos = new ArrayList<>();
     for (PortfolioTrade portfolioTrade : portfolioTrades) {
@@ -84,15 +86,17 @@ public class PortfolioManagerApplication {
     Collections.sort(totalReturnsDtos, new Comparator<TotalReturnsDto>(){
       @Override
       public int compare(TotalReturnsDto t1, TotalReturnsDto t2){
-        if(t1.getClose() > t2.getClose()){
+        if(t1.getClosingPrice() > t2.getClosingPrice()){
           return 1;
-        } else if(t1.getClose() < t2. getClose()){
+        } else if(t1.getClosingPrice() < t2. getClosingPrice()){
           return -1;
         } else {
           return 0;
         }
       }
     });
+
+    
     List<String> symbols = new ArrayList<>();
     for(TotalReturnsDto totalReturnsDto : totalReturnsDtos){
       symbols.add(totalReturnsDto.getSymbol());
