@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import javax.swing.border.EtchedBorder;
@@ -22,10 +23,12 @@ import com.crio.warmup.stock.dto.Candle;
 import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.TiingoCandle;
 import com.crio.warmup.stock.dto.TotalReturnsDto;
+import com.crio.warmup.stock.log.UncaughtExceptionHandler;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import org.apache.logging.log4j.ThreadContext;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestTemplate;
 
@@ -134,8 +137,8 @@ public class PortfolioManagerApplication {
   }
 
   public static void main(String[] args) throws Exception {
-    // Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
-    // ThreadContext.put("runId", UUID.randomUUID().toString());
+    Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
+    ThreadContext.put("runId", UUID.randomUUID().toString());
     System.out.println(args[0]);
     printJsonObject(mainReadQuotes(args));
   }
