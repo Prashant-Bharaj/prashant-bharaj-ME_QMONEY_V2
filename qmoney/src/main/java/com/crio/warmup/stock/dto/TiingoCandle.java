@@ -13,7 +13,6 @@ public class TiingoCandle implements Candle {
   private Double low;
   private LocalDate date;
 
-
   @Override
   public Double getOpen() {
     return open;

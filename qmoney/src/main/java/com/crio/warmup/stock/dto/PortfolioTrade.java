@@ -3,9 +3,6 @@ package com.crio.warmup.stock.dto;
 
 import java.time.LocalDate;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-
 public class PortfolioTrade {
 
   public PortfolioTrade() {  }
