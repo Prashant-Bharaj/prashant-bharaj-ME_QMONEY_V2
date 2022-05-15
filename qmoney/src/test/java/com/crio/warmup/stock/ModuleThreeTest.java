@@ -74,7 +74,7 @@ class ModuleThreeTest {
     //given
     String filename = "assessments/trades_old.json";
 
-    //when
+    // when
     List<AnnualizedReturn> result = PortfolioManagerApplication
         .mainCalculateSingleReturn(new String[]{filename, "2019-12-20"});
 
@@ -86,5 +86,4 @@ class ModuleThreeTest {
     Assertions.assertEquals(0.056, result.get(2).getAnnualizedReturn(), 0.01);
     Assertions.assertEquals(Arrays.asList(new String[]{"ABBV", "CTS", "MMM"}), symbols);
   }
-
 }
