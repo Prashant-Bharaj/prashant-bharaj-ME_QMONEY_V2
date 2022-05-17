@@ -1,4 +1,3 @@
-
 package com.crio.warmup.stock;
 
 // import sun.jvm.hotspot.debugger.ThreadContext;
@@ -114,7 +113,7 @@ public class PortfolioManagerApplication {
             .collect(Collectors.toList());
   }
 
-  // TODO: CRIO_TASK_MODULE_CALCULATIONS
+
   //  Return the populated list of AnnualizedReturn for all stocks.
   //  Annualized returns should be calculated in two steps:
   //   1. Calculate totalReturn = (sell_value - buy_value) / buy_value.
@@ -123,8 +122,6 @@ public class PortfolioManagerApplication {
   //      The formula is:
   //      annualized_returns = (1 + total_returns) ^ (1 / total_num_years) - 1
   //      2.1 Store the same as annualized_returns
-  //  Test the same using below specified command. The build should be successful.
-  //     ./gradlew test --tests PortfolioManagerApplicationTest.testCalculateAnnualizedReturn
 
   public static AnnualizedReturn calculateAnnualizedReturns(LocalDate endDate,
       PortfolioTrade trade, Double buyPrice, Double sellPrice) {
