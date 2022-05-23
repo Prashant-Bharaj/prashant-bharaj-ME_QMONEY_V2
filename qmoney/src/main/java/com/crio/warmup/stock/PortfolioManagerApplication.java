@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import com.crio.warmup.stock.dto.*;
 import com.crio.warmup.stock.log.UncaughtExceptionHandler;
 import com.crio.warmup.stock.portfolio.PortfolioManager;
 import com.crio.warmup.stock.portfolio.PortfolioManagerFactory;
@@ -279,7 +278,7 @@ public class PortfolioManagerApplication {
     
     // printJsonObject(mainCalculateSingleReturn(args));
 
-    printJsonObject(mainCalculateReturnsAfterRefactor(args));
+    // printJsonObject(mainCalculateReturnsAfterRefactor(args));
     // printJsonObject(mainReadQuotes(args));
   }
 }
