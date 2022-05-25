@@ -8,6 +8,8 @@ import com.crio.warmup.stock.dto.AnnualizedReturn;
 import com.crio.warmup.stock.dto.Candle;
 import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.TiingoCandle;
+import com.crio.warmup.stock.quotes.StockQuoteServiceFactory;
+import com.crio.warmup.stock.quotes.StockQuotesService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -28,16 +30,28 @@ import org.springframework.web.client.RestTemplate;
 public class PortfolioManagerImpl implements PortfolioManager {
 
 
+  static StockQuotesService stockQuotesService;
 
   static RestTemplate restTemplate;
   // Caution: Do not delete or modify the constructor, or else your build will break!
   // This is absolutely necessary for backward compatibility
+
+  @Deprecated
   protected PortfolioManagerImpl(RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
   }
 
+  @Deprecated
+  protected PortfolioManagerImpl(StockQuotesService stockQuotesService) {
+    this.stockQuotesService = stockQuotesService;
+  }
 
-  //TODO: CRIO_TASK_MODULE_REFACTOR
+  protected PortfolioManagerImpl(String provider, RestTemplate restTemplate) {
+    this.restTemplate = restTemplate;
+    stockQuotesService = StockQuoteServiceFactory.getService(provider, restTemplate);
+  }
+
+
   // 1. Now we want to convert our code into a module, so we will not call it from main anymore.
   //    Copy your code from Module#3 PortfolioManagerApplication#calculateAnnualizedReturn
   //    into #calculateAnnualizedReturn function here and ensure it follows the method signature.
@@ -50,6 +64,11 @@ public class PortfolioManagerImpl implements PortfolioManager {
 
   //CHECKSTYLE:OFF
 
+  // ¶TODO: CRIO_TASK_MODULE_ADDITIONAL_REFACTOR
+  //  Modify the function #getStockQuote and start delegating to calls to
+  //  stockQuoteService provided via newly added constructor of the class.
+  //  You also have a liberty to completely get rid of that function itself, however, make sure
+  //  that you do not delete the #getStockQuote function.
 
 
 
@@ -59,31 +78,26 @@ public class PortfolioManagerImpl implements PortfolioManager {
 
   //CHECKSTYLE:OFF
 
-  // TODO: CRIO_TASK_MODULE_REFACTOR
   //  Extract the logic to call Tiingo third-party APIs to a separate function.
   //  Remember to fill out the buildUri function and use that.
 
-  public static List<Candle> getCandles(String url){
+  // public static List<Candle> getCandles(String url){
     // RestTemplate restTemplate = new RestTemplate();
-    Candle[] candles = restTemplate.getForObject(url, TiingoCandle[].class);
-    if(candles.length == 0) throw new RuntimeException();
-    return Arrays.asList(candles);
-  }
+    // Candle[] candles = restTemplate.getForObject(url, TiingoCandle[].class);
+    
+    
+    // if(candles.length == 0) throw new RuntimeException();
+    // return Arrays.asList(candles);
+  //   stockQuotesService.getStockQuote();
+  // }
 
-  public List<Candle> getStockQuote(String symbol, LocalDate from, LocalDate to) {
-     String url = buildUri(symbol, from, to);
-     return getCandles(url);
+  public List<Candle> getStockQuote(String symbol, LocalDate from, LocalDate to) throws JsonProcessingException {
+    return stockQuotesService.getStockQuote(symbol, from, to);
   }
 
   protected String buildUri(String symbol, LocalDate startDate, LocalDate endDate) {
     final String token = "7375d6e3553d0817d4ea50ee14460e4161354332";
-    // String uriTemplate = "https:api.tiingo.com/tiingo/daily/$SYMBOL/prices?"
-    //     + "startDate=$STARTDATE&endDate=$ENDDATE&token=$APIKEY";
-    // uriTemplate.replace("$SYMBOL", symbol)
-    //           .replace("$STARTDATE", startDate.toString())
-    //           .replace("$ENDDATE", endDate.toString())
-    //           .replace("$APIKEY", token);
-    // return uriTemplate;
+    
     return String.format("https://api.tiingo.com/tiingo/daily/%s/prices?startDate=%s&endDate=%s&token=%s",
     symbol, startDate, endDate, token);
   }
@@ -129,10 +143,16 @@ public class PortfolioManagerImpl implements PortfolioManager {
       // get buy and sell price
       List<AnnualizedReturn> annualizedReturns = new ArrayList<>();
       for(PortfolioTrade portfolioTrade : portfolioTrades){
-        List<Candle> candles = getStockQuote(portfolioTrade.getSymbol(), portfolioTrade.getPurchaseDate(), endDate);
-        Double buyPrice = getOpeningPriceOnStartDate(candles);
-        Double sellPrice = getClosingPriceOnEndDate(candles);
-        annualizedReturns.add(calculateSingleAnnualizedReturns(endDate, portfolioTrade, buyPrice, sellPrice));
+        List<Candle> candles;
+        try {
+          candles = getStockQuote(portfolioTrade.getSymbol(), portfolioTrade.getPurchaseDate(), endDate);
+          Double buyPrice = getOpeningPriceOnStartDate(candles);
+          Double sellPrice = getClosingPriceOnEndDate(candles);
+          annualizedReturns.add(calculateSingleAnnualizedReturns(endDate, portfolioTrade, buyPrice, sellPrice));
+        } catch (JsonProcessingException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
       }
       return annualizedReturns
               .stream()

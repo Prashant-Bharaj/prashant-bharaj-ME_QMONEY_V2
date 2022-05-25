@@ -265,7 +265,7 @@ public class PortfolioManagerApplication {
        ObjectMapper objectMapper = getObjectMapper();
        RestTemplate restTemplate = new RestTemplate();
        PortfolioTrade[] portfolioTrades = objectMapper.readValue(file, PortfolioTrade[].class);
-       PortfolioManager portfolioManager = PortfolioManagerFactory.getPortfolioManager(restTemplate);
+       PortfolioManager portfolioManager = PortfolioManagerFactory.getPortfolioManager("tiingo", restTemplate);
        return portfolioManager.calculateAnnualizedReturn(Arrays.asList(portfolioTrades), endDate);
   }
 
